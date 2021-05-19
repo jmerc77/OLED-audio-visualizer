@@ -8,3 +8,6 @@ Uses teensy 4.0 and a sparkfun [Micro OLED Breakout](https://www.sparkfun.com/pr
 Capacitor is 10uf to 1000uf
 Both resistors are of the **same value** and 1k to 10k.
 tweek values to your liking
+
+# Demo video:
+https://youtu.be/AOVJfQF-9LA
