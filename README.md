@@ -7,7 +7,10 @@ Uses teensy 4.0 and a sparkfun [Micro OLED Breakout](https://www.sparkfun.com/pr
 
 Capacitor is 10uf to 1000uf
 Both resistors are of the **same value** and 1k to 10k.
-tweek values to your liking
+tweek values to your liking.
+seems good with 10k resistors and 220uf capacitor.
+
+note: there is a noticable offset when resistors are too large in value. i think this is caused by some internal bias in the chip.
 
 # Demo video:
 https://youtu.be/AOVJfQF-9LA
