@@ -10,6 +10,17 @@
 #define PIN_RESET 9
 #define PIN_CS    10
 const int audio_pin = A9;
+
+//random effect
+#define RAND_SEL
+//random effect length
+#define RAND_DUR
+//default duration
+#define DEFAULT_DUR 16000
+//first effect
+#define FIRST_EFFECT 10
+
+#define NUM_EFFECTS 11
 const int sw = 64;
 const int sh = 48;
 const uint16_t samples = 128;//2 * screen_width
@@ -20,13 +31,13 @@ const double rainspdmax = 16.0;
 const double slimespdmax = 8.0;
 const double barspd = 0.5;
 const double fftvol = 0.25;
-const uint8_t greys = 32;
+const uint8_t greys = 64;
 const int uspersamp = 260;
 uint8_t exponent;
-volatile unsigned int samp = 0, t2 = 20000;
+volatile unsigned int samp = 0, t2 = DEFAULT_DUR;
 volatile float rainbuff[sw], rainbuff2[sw];
 volatile uint8_t buff[sw][sh];
-volatile int sel = 3, hitbottom = sw, y = 0;
+volatile int sel = FIRST_EFFECT, hitbottom = sw, y = 0;
 elapsedMillis t = 0;
 MicroOLED oled(PIN_RESET, PIN_DC, PIN_CS);
 arduinoFFT FFT = arduinoFFT();
@@ -74,8 +85,16 @@ void getsamp()
         }
       }
       }
-      sel = random(10);//(sel + 1) % 10;//pick new fx
-      t2 = random(20000) + 15000;//pick new duration
+      #ifdef RAND_SEL
+      sel = random(NUM_EFFECTS);//(sel + 1) % 10;//pick new fx
+      #else
+      sel = (sel + 1) % NUM_EFFECTS;//pick new fx
+      #endif
+      #ifdef RAND_DUR
+      t2 = random(DEFAULT_DUR) + (DEFAULT_DUR*3/2);//pick new duration
+      #else
+      t2 = DEFAULT_DUR;
+      #endif
       hitbottom = 0;
       t = 0;
     }
@@ -134,16 +153,16 @@ void getsamp()
       case 3:
         //osc
         oled.clear(PAGE);
-        for (int i = 0; i < sw; i++)
+        for (int i = 0; i < samples; i+=2)
         {
-          if (i > 0)
+          if (i/2 > 0)
           {
-            uint8_t point1 = sh - 1 - constrain(((vReal[i * 2 - 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
-            uint8_t   point2 = sh - 1 - constrain(((vReal[i * 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
-            oled.line(i - 1, point1, i, point2);
+            uint8_t point1 = sh - 1 - constrain(((vReal[i - 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            uint8_t   point2 = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            oled.line(i/2 - 1, point1, i/2, point2);
           }
-          rainbuff[i] = sh - 1 - constrain(((vReal[i * 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
-          rainbuff2[i] = rainbuff[i];
+          rainbuff[i/2] = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+          rainbuff2[i/2] = rainbuff[i];
         }
         oled.display();
         break;
@@ -189,15 +208,15 @@ void getsamp()
         //osc and rain
         oled.clear(PAGE);
         //osc
-        for (int i = 0; i < sw; i++)
+        for (int i = 0; i < samples; i+=2)
         {
-          if (i > 0)
+          if (i/2 > 0)
           {
-            uint8_t point1 = sh - 1 - constrain(((vReal[i * 2 - 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
-            uint8_t   point2 = sh - 1 - constrain(((vReal[i * 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
-            oled.line(i - 1, point1, i, point2);
+            uint8_t point1 = sh - 1 - constrain(((vReal[i - 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            uint8_t   point2 = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            oled.line(i/2 - 1, point1, i/2, point2);
           }
-          rainbuff2[i] = sh - 1 - constrain(((vReal[i * 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+          rainbuff2[i/2] = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
         }
         //rain
         FFT.Compute(vReal, vImag, samples, exponent, FFT_FORWARD);
@@ -284,15 +303,15 @@ void getsamp()
           //osc and bouncy
         oled.clear(PAGE);
         //osc
-        for (int i = 0; i < sw; i++)
+        for (int i = 0; i < samples; i+=2)
         {
-          if (i > 0)
+          if (i/2 > 0)
           {
-            uint8_t point1 = sh - 1 - constrain(((vReal[i * 2 - 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
-            uint8_t   point2 = sh - 1 - constrain(((vReal[i * 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
-            oled.line(i - 1, point1, i, point2);
+            uint8_t point1 = sh - 1 - constrain(((vReal[i - 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            uint8_t   point2 = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            oled.line(i/2 - 1, point1, i/2, point2);
           }
-          rainbuff2[i] = sh - 1 - constrain(((vReal[i * 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+          rainbuff2[i/2] = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
         }
         //bouncy
         FFT.Compute(vReal, vImag, samples, exponent, FFT_FORWARD);
@@ -329,7 +348,47 @@ void getsamp()
         oled.clear(PAGE);
         for (int i = 0; i < sw; i++)
         {
-          int bar = map(constrain(vReal[i] * fftvol, 0, 255), 0, 255, 0, sh - 1);
+          int bar = map(constrain(vReal[i] * fftvol, 0, 255), 0, 255, 0, sh/2 - 1);
+          rainbuff2[i] = bar;
+          if (i % 2 == 0)
+          {
+            bar = sh - 1 - bar;
+            rainbuff[i] += barspd;
+            if (rainbuff[i] > bar)rainbuff[i] = bar;
+            oled.pixel(i, rainbuff[i]);
+            if (bar < sh - 1)oled.line(i, sh - 1, i, bar);
+          }
+          else
+          {
+            rainbuff[i] -= barspd;
+            if (rainbuff[i] < bar)rainbuff[i] = bar;
+            oled.pixel(i, rainbuff[i]);
+            if (bar > 0)oled.line(i, 0, i, bar);
+          }
+        }
+        oled.display();
+        break;
+      case 10:
+        //jaw and osc
+        //osc
+        oled.clear(PAGE);
+        for (int i = 0; i < samples; i+=2)
+        {
+          if (i/2 > 0)
+          {
+            uint8_t point1 = sh - 1 - constrain(((vReal[i - 2] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            uint8_t   point2 = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+            oled.line(i/2 - 1, point1, i/2, point2);
+          }
+          //rainbuff[i] = sh - 1 - constrain(((vReal[i] + 128) * (sh - 1) / 255.0), 0, sh - 1);
+          //rainbuff2[i] = rainbuff[i];
+        }
+        //jaw
+        FFT.Compute(vReal, vImag, samples, exponent, FFT_FORWARD);
+        FFT.ComplexToMagnitude(vReal, vImag, samples);
+        for (int i = 0; i < sw; i++)
+        {
+          int bar = map(constrain(vReal[i] * fftvol, 0, 255), 0, 255, 0, sh/2 - 1);
           rainbuff2[i] = bar;
           if (i % 2 == 0)
           {
